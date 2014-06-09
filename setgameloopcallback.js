@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-(function (global) {
+(function setGameLoopCallbackSetup(global) {
     "use strict";
     // Start performance.now shim
     var last_time = 0,
@@ -40,7 +40,7 @@
         callbacks.length = 0;
         set = false;
     }
-    global.setGameLoop = function setGameLoop(callback) {
+    global.setGameLoopCallback = function setGameLoopCallback(callback) {
         var current_time, time_to_call;
         if (!set) {
             current_time = global.performance.now();
@@ -51,7 +51,7 @@
         }
         return callbacks.push(callback);
     };
-    global.clearGameLoop = function clearGameLoop(id) {
+    global.cancelGameLoopCallback = function cancelGameLoopCallback(id) {
         if (id > callbacks.length - 1) {
             return;
         }
