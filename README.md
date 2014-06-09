@@ -1,4 +1,4 @@
 gamelooper
 ==========
 
-Average gamelooper for javascript games (clocked at an average of 60 steps per second)
+Set a callback to be run inside the gamelooper (clocked at an average of 60 steps per second and kind of works like requestAnimationFrame)
