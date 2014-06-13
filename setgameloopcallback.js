@@ -18,7 +18,12 @@
     "use strict";
     // Start performance.now shim
     var last_time = 0,
-        callbacks = [],
+        // We'll be using two lists to avoid any conflicts when setting up new callbacks while the current list is being processed
+        callbacks = [
+            [],
+            []
+        ],
+        current_index = 0,
         noop = function noop() { return; },
         set = false;
     if (!global.performance) {
@@ -33,12 +38,13 @@
     }
     // End performance.now shim
     function callbackCaller() {
-        var i, length = callbacks.length;
-        for (i = 0; i < length; i += 1) {
-            callbacks[i]();
-        }
-        callbacks.length = 0;
+        var i, list = callbacks[current_index], length = list.length;
+        current_index = (current_index + 1 > 1) ? 0 : 1;
         set = false;
+        for (i = 0; i < length; i += 1) {
+            list[i]();
+        }
+        list.length = 0;
     }
     global.setGameLoopCallback = function setGameLoopCallback(callback) {
         var current_time, time_to_call;
@@ -49,12 +55,12 @@
             setTimeout(callbackCaller, time_to_call);
             set = true;
         }
-        return callbacks.push(callback);
+        return (callbacks[current_index].push(callback)) - 1;
     };
     global.cancelGameLoopCallback = function cancelGameLoopCallback(id) {
-        if (id > callbacks.length - 1) {
+        if (id > callbacks[current_index].length - 1) {
             return;
         }
-        callbacks[id] = noop;
+        callbacks[current_index][id] = noop;
     };
 }(window));
