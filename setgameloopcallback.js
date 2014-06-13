@@ -16,7 +16,6 @@
 
 (function setGameLoopCallbackSetup(global) {
     "use strict";
-    // Start performance.now shim
     var last_time = 0,
         // We'll be using two lists to avoid any conflicts when setting up new callbacks while the current list is being processed
         callbacks = [
@@ -26,6 +25,7 @@
         current_index = 0,
         noop = function noop() { return; },
         set = false;
+    // Start performance.now shim
     if (!global.performance) {
         global.performance = {};
     }
