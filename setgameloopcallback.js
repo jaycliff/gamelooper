@@ -39,7 +39,7 @@
     // End performance.now shim
     function callbackCaller() {
         var i, list = callbacks[current_index], length = list.length;
-        current_index = (current_index + 1 > 1) ? 0 : 1;
+        current_index = (current_index === 1) ? 0 : 1;
         set = false;
         for (i = 0; i < length; i += 1) {
             list[i]();
