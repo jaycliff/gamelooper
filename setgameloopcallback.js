@@ -13,7 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-/*global window, performance, setTimeout, clearTimeout*/
+/*global window, console, performance, setTimeout*/
 (function () {
     "use strict";
     var nowOffset;
@@ -42,6 +42,9 @@
         current_index = 0,
         noop = function noop() { return; },
         set = false;
+    if (Object.freeze) {
+        Object.freeze(noop);
+    }
     function callbackCaller() {
         var i, list = callbacks[current_index], length = list.length;
         current_index = (current_index === 1) ? 0 : 1;
@@ -63,7 +66,8 @@
         return (callbacks[current_index].push(callback)) - 1;
     };
     global.cancelGameLoopCallback = function cancelGameLoopCallback(id) {
-        if (id > callbacks[current_index].length - 1) {
+        if (id === undefined || id > callbacks[current_index].length - 1) {
+            console.log('Invalid id');
             return;
         }
         callbacks[current_index][id] = noop;
