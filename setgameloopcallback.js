@@ -13,7 +13,24 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
+/*global window, performance, setTimeout, clearTimeout*/
+(function () {
+    "use strict";
+    var nowOffset;
+    // prepare base perf object
+    if (typeof window.performance !== 'object') {
+        window.performance = {};
+    }
+    if (!window.performance.now) {
+        nowOffset = Date.now();
+        if (performance.timing && performance.timing.navigationStart) {
+            nowOffset = performance.timing.navigationStart;
+        }
+        window.performance.now = function now() {
+            return Date.now() - nowOffset;
+        };
+    }
+}());
 (function setGameLoopCallbackSetup(global) {
     "use strict";
     var last_time = 0,
@@ -25,18 +42,6 @@
         current_index = 0,
         noop = function noop() { return; },
         set = false;
-    // Start performance.now shim
-    if (!global.performance) {
-        global.performance = {};
-    }
-    if (!global.performance.now) {
-        global.performance.now = global.performance.mozNow ||
-            global.performance.msNow ||
-            global.performance.oNow ||
-            global.performance.webkitNow ||
-            function now() { return Date.now(); };
-    }
-    // End performance.now shim
     function callbackCaller() {
         var i, list = callbacks[current_index], length = list.length;
         current_index = (current_index === 1) ? 0 : 1;
