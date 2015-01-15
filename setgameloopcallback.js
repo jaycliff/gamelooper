@@ -58,7 +58,7 @@
         var current_time, time_to_call;
         if (!set) {
             current_time = global.performance.now();
-            time_to_call = Math.max(0, 16 - (current_time - last_time));
+            time_to_call = Math.max(0, 16.67 - (current_time - last_time));
             last_time = current_time + time_to_call;
             setTimeout(callbackCaller, time_to_call);
             set = true;
