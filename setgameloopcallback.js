@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Jaycliff Arcilla
+    Copyright 2014 Jaycliff Arcilla of Eversun Software Philippines Corporation
     
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-/*global window, console, performance, setTimeout*/
+/*global window, console, alert, performance, setTimeout*/
 (function () {
     "use strict";
     var nowOffset;
@@ -66,10 +66,12 @@
         return (callbacks[current_index].push(callback)) - 1;
     };
     global.cancelGameLoopCallback = function cancelGameLoopCallback(id) {
-        if (id === undefined || id > callbacks[current_index].length - 1) {
-            console.log('Invalid id');
+        var list = callbacks[current_index];
+        if (id === undefined || typeof id !== "number" || id < 0 || id > list.length - 1) {
+            console.log('setGameLoopCallback: Invalid id');
+            alert('setGameLoopCallback: Invalid id');
             return;
         }
-        callbacks[current_index][id] = noop;
+        list[id] = noop;
     };
 }(window));
