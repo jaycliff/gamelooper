@@ -14,23 +14,25 @@
     limitations under the License.
 */
 /*global window, console, alert, performance, setTimeout*/
-(function () {
-    "use strict";
-    var nowOffset;
-    // prepare base perf object
-    if (typeof window.performance !== 'object') {
+
+if (typeof window.performance !== 'object') {
+    (function () {
+        "use strict";
+        var nowOffset;
+        // prepare the base performance object
         window.performance = {};
-    }
-    if (!window.performance.now) {
-        nowOffset = Date.now();
-        if (performance.timing && performance.timing.navigationStart) {
-            nowOffset = performance.timing.navigationStart;
+        if (!window.performance.now) {
+            if (performance.timing && performance.timing.navigationStart) {
+                nowOffset = performance.timing.navigationStart;
+            } else {
+                nowOffset = Date.now();
+            }
+            window.performance.now = function now() {
+                return Date.now() - nowOffset;
+            };
         }
-        window.performance.now = function now() {
-            return Date.now() - nowOffset;
-        };
-    }
-}());
+    }());
+}
 (function setGameLoopCallbackSetup(global) {
     "use strict";
     var last_time = 0,
@@ -58,7 +60,7 @@
         var current_time, time_to_call;
         if (!set) {
             current_time = global.performance.now();
-            time_to_call = Math.max(0, 16.67 - (current_time - last_time));
+            time_to_call = Math.max(0, 16 - (current_time - last_time));
             last_time = current_time + time_to_call;
             setTimeout(callbackCaller, time_to_call);
             set = true;
