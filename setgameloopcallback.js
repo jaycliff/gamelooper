@@ -71,7 +71,7 @@ if (typeof window.performance !== 'object') {
         var list = callbacks[current_index];
         if (id === undefined || typeof id !== "number" || id < 0 || id > list.length - 1) {
             console.log('setGameLoopCallback: Invalid id');
-            alert('setGameLoopCallback: Invalid id');
+            //alert('setGameLoopCallback: Invalid id');
             return;
         }
         list[id] = noop;
