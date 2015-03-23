@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Jaycliff Arcilla of Eversun Software Philippines Corporation
+    Copyright 2015 Jaycliff Arcilla of Eversun Software Philippines Corporation
     
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -32,6 +32,12 @@ if (typeof window.performance !== 'object') {
             };
         }
     }());
+}
+if (typeof Object.freeze !== "function") {
+    Object.freeze = function freeze(object) {
+        "use strict";
+        return object;
+    };
 }
 (function setGameLoopCallbackSetup(global) {
     "use strict";
@@ -67,11 +73,10 @@ if (typeof window.performance !== 'object') {
         }
         return (callbacks[current_index].push(callback)) - 1;
     };
-    global.cancelGameLoopCallback = function cancelGameLoopCallback(id) {
+    global.cancelGameLoopCallback = function cancelGameLoopCallback(id, log) {
         var list = callbacks[current_index];
         if (id === undefined || typeof id !== "number" || id < 0 || id > list.length - 1) {
-            console.log('setGameLoopCallback: Invalid id');
-            //alert('setGameLoopCallback: Invalid id');
+            if (!!log) { console.log('setGameLoopCallback: Invalid id'); }
             return;
         }
         list[id] = noop;
