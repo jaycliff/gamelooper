@@ -77,6 +77,7 @@ if (typeof window.performance.now !== "function") {
         var list = callbacks[current_index];
         // ToInteger: http://www.ecma-international.org/ecma-262/5.1/#sec-9.4
         id = Number(id);
+        // id !== id returns true if and only if id is NaN
         id = (id !== id) ? 0 : (id === 0 || id === Infinity || id === -Infinity) ? id : (id > 0) ? Math.floor(id) : Math.ceil(id);
         if (id < 0 || id > list.length - 1) {
             throw new TypeError('Invalid id.');
