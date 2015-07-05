@@ -51,37 +51,45 @@ if (typeof window.performance.now !== "function") {
         noop = function noop() { return; },
         set = false;
     function callbackCaller() {
-        var i, list = callbacks[current_index], length = list.length;
+        var i, item, list = callbacks[current_index], length = list.length;
         current_index = (current_index === 1) ? 0 : 1;
         set = false;
         for (i = 0; i < length; i += 1) {
-            list[i]();
+            // callbacks must be stored in a variable before executing to make native methods ('alert', 'confirm', etc.) work.
+            item = list[i];
+            item();
         }
         list.length = 0;
     }
     global.setGameLoopCallback = function setGameLoopCallback(callback) {
         var current_time, time_to_call;
-        if (typeof callback !== "function") {
-            throw new TypeError('callback must be a function.');
+        if (arguments.length === 0) {
+            throw new TypeError("Failed to execute 'setGameLoopCallback' on 'Window': 1 argument required, but only 0 present.");
         }
-        if (!set) {
+        if (typeof callback !== "function") {
+            throw new TypeError("Failed to execute 'setGameLoopCallback' on 'Window': The callback provided as parameter 1 is not a function.");
+        }
+        if (set === false) {
             current_time = global.performance.now();
             time_to_call = Math.max(0, 16 - (current_time - last_time));
             last_time = current_time + time_to_call;
             setTimeout(callbackCaller, time_to_call);
             set = true;
         }
-        return (callbacks[current_index].push(callback)) - 1;
+        return (callbacks[current_index].push(callback));
     };
     global.cancelGameLoopCallback = function cancelGameLoopCallback(id) {
         var list = callbacks[current_index];
+        if (arguments.length === 0) {
+            throw new TypeError("Failed to execute 'cancelGameLoopCallback' on 'Window': 1 argument required, but only 0 present.");
+        }
         // ToInteger: http://www.ecma-international.org/ecma-262/5.1/#sec-9.4
         id = Number(id);
         // id !== id returns true if and only if id is NaN
         id = (id !== id) ? 0 : (id === 0 || id === Infinity || id === -Infinity) ? id : (id > 0) ? Math.floor(id) : Math.ceil(id);
-        if (id < 0 || id > list.length - 1) {
-            return;
+        id -= 1;
+        if (id in list) {
+            list[id] = noop;
         }
-        list[id] = noop;
     };
 }(window));
