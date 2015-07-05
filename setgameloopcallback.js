@@ -13,25 +13,31 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-/*global window, performance, setTimeout*/
-
-if (typeof window.performance !== 'object') {
-    (function () {
+/*global window, setTimeout*/
+// window.performance.now() shim: https://gist.github.com/paulirish/5438650
+if (typeof window.performance !== "object") {
+    // prepare the base performance object
+    window.performance = {};
+}
+if (typeof window.performance.now !== "function") {
+    (function (performance) {
         "use strict";
         var nowOffset;
-        // prepare the base performance object
-        window.performance = {};
-        if (!window.performance.now) {
-            if (performance.timing && performance.timing.navigationStart) {
-                nowOffset = performance.timing.navigationStart;
-            } else {
-                nowOffset = Date.now();
-            }
-            window.performance.now = function now() {
-                return Date.now() - nowOffset;
+        // thanks IE8
+        if (typeof Date.now !== "function") {
+            Date.now = function () {
+                return new Date().getTime();
             };
         }
-    }());
+        if (performance.timing && performance.timing.navigationStart) {
+            nowOffset = performance.timing.navigationStart;
+        } else {
+            nowOffset = Date.now();
+        }
+        window.performance.now = function now() {
+            return Date.now() - nowOffset;
+        };
+    }(window.performance));
 }
 (function setGameLoopCallbackSetup(global) {
     "use strict";
