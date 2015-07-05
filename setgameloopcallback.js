@@ -80,7 +80,7 @@ if (typeof window.performance.now !== "function") {
         // id !== id returns true if and only if id is NaN
         id = (id !== id) ? 0 : (id === 0 || id === Infinity || id === -Infinity) ? id : (id > 0) ? Math.floor(id) : Math.ceil(id);
         if (id < 0 || id > list.length - 1) {
-            throw new TypeError('Invalid id.');
+            return;
         }
         list[id] = noop;
     };
