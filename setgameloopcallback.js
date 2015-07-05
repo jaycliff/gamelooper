@@ -13,7 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-/*global window, console, alert, performance, setTimeout*/
+/*global window, performance, setTimeout*/
 
 if (typeof window.performance !== 'object') {
     (function () {
@@ -33,12 +33,6 @@ if (typeof window.performance !== 'object') {
         }
     }());
 }
-if (typeof Object.freeze !== "function") {
-    Object.freeze = function freeze(object) {
-        "use strict";
-        return object;
-    };
-}
 (function setGameLoopCallbackSetup(global) {
     "use strict";
     var last_time = 0,
@@ -50,9 +44,6 @@ if (typeof Object.freeze !== "function") {
         current_index = 0,
         noop = function noop() { return; },
         set = false;
-    if (Object.freeze) {
-        Object.freeze(noop);
-    }
     function callbackCaller() {
         var i, list = callbacks[current_index], length = list.length;
         current_index = (current_index === 1) ? 0 : 1;
@@ -64,6 +55,9 @@ if (typeof Object.freeze !== "function") {
     }
     global.setGameLoopCallback = function setGameLoopCallback(callback) {
         var current_time, time_to_call;
+        if (typeof callback !== "function") {
+            throw new TypeError('callback must be a function.');
+        }
         if (!set) {
             current_time = global.performance.now();
             time_to_call = Math.max(0, 16 - (current_time - last_time));
@@ -73,11 +67,13 @@ if (typeof Object.freeze !== "function") {
         }
         return (callbacks[current_index].push(callback)) - 1;
     };
-    global.cancelGameLoopCallback = function cancelGameLoopCallback(id, log) {
+    global.cancelGameLoopCallback = function cancelGameLoopCallback(id) {
         var list = callbacks[current_index];
-        if (id === undefined || typeof id !== "number" || id < 0 || id > list.length - 1) {
-            if (!!log) { console.log('setGameLoopCallback: Invalid id'); }
-            return;
+        // ToInteger: http://www.ecma-international.org/ecma-262/5.1/#sec-9.4
+        id = Number(id);
+        id = (id !== id) ? 0 : (id === 0 || id === Infinity || id === -Infinity) ? id : (id > 0) ? Math.floor(id) : Math.ceil(id);
+        if (id < 0 || id > list.length - 1) {
+            throw new TypeError('Invalid id.');
         }
         list[id] = noop;
     };
