@@ -1,5 +1,5 @@
 /*
-    Copyright 2015 Jaycliff Arcilla of Eversun Software Philippines Corporation
+    Copyright 2016 Jaycliff Arcilla of Eversun Software Philippines Corporation
     
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,83 +13,89 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-/*global window, setTimeout*/
-// window.performance.now() shim: https://gist.github.com/paulirish/5438650
-if (typeof window.performance !== "object") {
-    // prepare the base performance object
-    window.performance = {};
-}
-if (typeof window.performance.now !== "function") {
-    (function (performance) {
-        "use strict";
-        var nowOffset;
-        // thanks IE8
-        if (typeof Date.now !== "function") {
-            Date.now = function () {
-                return new Date().getTime();
-            };
-        }
-        if (performance.timing && performance.timing.navigationStart) {
-            nowOffset = performance.timing.navigationStart;
-        } else {
-            nowOffset = Date.now();
-        }
-        window.performance.now = function now() {
-            return Date.now() - nowOffset;
-        };
-    }(window.performance));
-}
-(function setGameLoopCallbackSetup(global) {
+
+/*jshint unused:true*/
+/*global window*/
+
+(function setGameLoopCallbackSetup(global, undef) {
     "use strict";
-    var last_time = 0,
+    var looper,
         // We'll be using two lists to avoid any conflicts when setting up new callbacks while the current list is being processed
         callbacks = [
             [],
             []
         ],
-        current_index = 0,
-        noop = function noop() { return; },
-        set = false;
-    function callbackCaller() {
-        var i, item, list = callbacks[current_index], length = list.length;
-        current_index = (current_index === 1) ? 0 : 1;
-        set = false;
+        id = 0,
+        id_to_index_map = {},
+        index_to_id_map = [
+            [],
+            []
+        ],
+        current_callbacks_list_index = 0,
+        noop = function noop() { return; };
+    function PunyWorker() {
+        var instance = this, interval_id, is_looping = false;
+        function loopStepper() {
+            if (typeof instance.onmessage === "function") {
+                instance.onmessage();
+            }
+        }
+        instance.postMessage = function postMessage(message) {
+            switch (message) {
+            case 'start':
+                if (!is_looping) {
+                    interval_id = setInterval(loopStepper, 1000 / 60);
+                    is_looping = true;
+                }
+                break;
+            case 'stop':
+                if (is_looping) {
+                    clearInterval(interval_id);
+                    is_looping = false;
+                }
+                break;
+            }
+        };
+    }
+    if (typeof Object.freeze === "function") {
+        Object.freeze(noop);
+    }
+    looper = (typeof Worker === "function") ? new Worker('setgameloopcallback-worker.js') : new PunyWorker();
+    looper.onmessage = function messageHandler() {
+        var i,
+            item,
+            list_1 = callbacks[current_callbacks_list_index],
+            list_2 = index_to_id_map[current_callbacks_list_index],
+            length = list_1.length;
+        current_callbacks_list_index = (current_callbacks_list_index === 1) ? 0 : 1;
         for (i = 0; i < length; i += 1) {
-            // callbacks must be stored in a variable before executing to make native methods ('alert', 'confirm', etc.) work.
-            item = list[i];
+            delete id_to_index_map[list_2[i]];
+            item = list_1[i];
             item();
         }
-        list.length = 0;
-    }
-    global.setGameLoopCallback = function setGameLoopCallback(callback) {
-        var current_time, time_to_call;
-        if (arguments.length === 0) {
-            throw new TypeError("Failed to execute 'setGameLoopCallback' on 'Window': 1 argument required, but only 0 present.");
-        }
-        if (typeof callback !== "function") {
-            throw new TypeError("Failed to execute 'setGameLoopCallback' on 'Window': The callback provided as parameter 1 is not a function.");
-        }
-        if (set === false) {
-            current_time = global.performance.now();
-            time_to_call = Math.max(0, 16 - (current_time - last_time));
-            last_time = current_time + time_to_call;
-            setTimeout(callbackCaller, time_to_call);
-            set = true;
-        }
-        return (callbacks[current_index].push(callback));
+        list_1.length = 0;
+        list_2.length = 0;
     };
-    global.cancelGameLoopCallback = function cancelGameLoopCallback(id) {
-        var list = callbacks[current_index];
-        if (arguments.length === 0) {
-            throw new TypeError("Failed to execute 'cancelGameLoopCallback' on 'Window': 1 argument required, but only 0 present.");
+    looper.postMessage('start');
+    global.setGameLoopCallback = function setGameLoopCallback(callback) {
+        var current_id;
+        if (arguments.length > 0) {
+            if (typeof callback === "function") {
+                current_id = id;
+                id_to_index_map[current_id] = (callbacks[current_callbacks_list_index].push(callback)) - 1;
+                index_to_id_map[current_callbacks_list_index].push(current_id);
+                id += 1;
+                return current_id;
+            }
+            throw new TypeError('Failed to execute setGameLoopCallback: The callback provided as parameter 1 is not a function.');
         }
-        // ToInteger: http://www.ecma-international.org/ecma-262/5.1/#sec-9.4
-        id = Number(id);
-        // id !== id returns true if and only if id is NaN
-        id = (id !== id) ? 0 : (id === 0 || id === Infinity || id === -Infinity) ? id : (id > 0) ? Math.floor(id) : Math.ceil(id);
-        id -= 1;
-        if (id in list) {
-            list[id] = noop;
+        throw new TypeError('Failed to execute setGameLoopCallback: 1 argument required, but only 0 present.');
+    };
+    global.cancelGameLoopCallback = function cancelGameLoopCallback(request_id) {
+        if (request_id !== undef || typeof request_id === "number") {
+            if (id_to_index_map.hasOwnProperty(request_id)) {
+                callbacks[current_callbacks_list_index][id_to_index_map[request_id]] = noop;
+            }
         }
     };
 }(window));

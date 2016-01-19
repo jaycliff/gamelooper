@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>setGameLoopCallback Example</title>
+        <style type="text/css">
+            * {
+                padding: 0;
+                margin: 0;
+            }
+        </style>
+        <script type="text/javascript" src="setgameloopcallback.js"></script>
+        <script type="text/javascript">
+            (function (global) {
+                "use strict";
+                var id;
+                // Write your awesome code here.
+                console.log(setGameLoopCallback(function () {
+                    console.log('outer callback');
+                    console.log(setGameLoopCallback(function () {
+                        console.log('inner callback');
+                    }));
+                }));
+                id = setGameLoopCallback(function () {
+                    console.log('Will this get cancelled?');
+                });
+                console.log(id);
+                cancelGameLoopCallback(id);
+            }(window));
+        </script>
+    </head>
+    <body>
+        <!-- Template by Jaycliff Arcilla -->
+    </body>
+</html>
