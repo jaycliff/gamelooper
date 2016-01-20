@@ -36,7 +36,32 @@
     if (typeof Object.freeze === "function") {
         Object.freeze(noop);
     }
-    looper = (typeof Worker === "function") ? new Worker('setgameloopcallback-worker.js') : (function PunyWorkerSetup() {
+    looper = (typeof Blob === "function" && typeof URL === "function" && typeof Worker === "function") ? new Worker(URL.createObjectURL(new Blob([
+        [
+            '"use strict";',
+            'var interval_id, is_looping = false;',
+            'function loopStepper() {',
+            '    self.postMessage("loop step");',
+            '}',
+            'self.onmessage = function (event) {',
+            '    var data = event.data;',
+            '    switch (data) {',
+            '    case "start":',
+            '        if (!is_looping) {',
+            '            interval_id = setInterval(loopStepper, 1000 / 60);',
+            '            is_looping = true;',
+            '        }',
+            '        break;',
+            '    case "stop":',
+            '        if (is_looping) {',
+            '            clearInterval(interval_id);',
+            '            is_looping = false;',
+            '        }',
+            '        break;',
+            '    }',
+            '};'
+        ].join('\n')
+    ], { type: "application/javascript" }))) : (function PunyWorkerSetup() {
         var instance = {}, interval_id, is_looping = false;
         function loopStepper() {
             if (typeof instance.onmessage === "function") {
